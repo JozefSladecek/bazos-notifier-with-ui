@@ -8,6 +8,8 @@ Usage (run from the scrapper/ project root):
 import sys
 from pathlib import Path
 
+from notifications.telegram import send_telegram_message
+
 # todo meanwhile, Add the project root (parent of scripts/) to Python's import path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -94,6 +96,7 @@ def save_listing(cur, listing, search_id):
         return False
     else:
         insert_listing(cur, listing, search_id)
+        send_telegram_message(f"🚗 Nový inzerát pre hľadanie: {search_name}")
         return True
 
 
