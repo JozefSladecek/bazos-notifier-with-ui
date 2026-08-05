@@ -8,6 +8,7 @@ Usage (run from the scrapper/ project root):
 import sys
 from pathlib import Path
 
+
 # todo meanwhile, Add the project root (parent of scripts/) to Python's import path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -16,6 +17,9 @@ import psycopg2.extras
 
 from src.db.connect import get_connection
 from src.scrapers import BazosScraper
+
+from src.notifications.telegram import send_telegram_message
+
 
 def fetch_active_searches(cur):
     """Return all active search rows from the DB."""
@@ -86,7 +90,7 @@ def insert_listing(cur, listing, search_id):
     )
 
 
-def save_listing(cur, listing, search_id):
+def save_listing(cur, listing, search_id, search_name):
     """Save one listing: insert if new, otherwise just update last_checked.
     Returns True if it was a new listing, False if it already existed."""
     if listing_exists(cur, listing):
@@ -94,6 +98,7 @@ def save_listing(cur, listing, search_id):
         return False
     else:
         insert_listing(cur, listing, search_id)
+        send_telegram_message(f"🚗 Nový inzerát pre hľadanie: {search_name}")
         return True
 
 
@@ -113,7 +118,7 @@ def process_search(cur, search):
     existing_count = 0
 
     for listing in listings:
-        is_new = save_listing(cur, listing, search["id"])
+        is_new = save_listing(cur, listing, search["id"], search["name"])
         if is_new:
             new_count += 1
             print(f"  NEW: {listing.title} - {listing.price}")
