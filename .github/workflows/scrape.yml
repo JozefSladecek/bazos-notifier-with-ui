@@ -2,7 +2,7 @@ name: Scrape Bazos listings
 
 on:
   schedule:
-    - cron: "*/20 * * * *"   # every 20 minutes
+    - cron: "*/5 * * * *"   # every 5 minutes
   workflow_dispatch:          # can also be triggered manually form github ui
 
 jobs:
