@@ -8,7 +8,6 @@ Usage (run from the scrapper/ project root):
 import sys
 from pathlib import Path
 
-from src.notifications.telegram import send_telegram_message
 
 # todo meanwhile, Add the project root (parent of scripts/) to Python's import path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -18,6 +17,9 @@ import psycopg2.extras
 
 from src.db.connect import get_connection
 from src.scrapers import BazosScraper
+
+from src.notifications.telegram import send_telegram_message
+
 
 def fetch_active_searches(cur):
     """Return all active search rows from the DB."""
