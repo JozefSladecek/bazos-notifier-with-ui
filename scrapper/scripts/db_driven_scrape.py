@@ -8,7 +8,7 @@ Usage (run from the scrapper/ project root):
 import sys
 from pathlib import Path
 
-from notifications.telegram import send_telegram_message
+from src.notifications.telegram import send_telegram_message
 
 # todo meanwhile, Add the project root (parent of scripts/) to Python's import path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -88,7 +88,7 @@ def insert_listing(cur, listing, search_id):
     )
 
 
-def save_listing(cur, listing, search_id):
+def save_listing(cur, listing, search_id, search_name):
     """Save one listing: insert if new, otherwise just update last_checked.
     Returns True if it was a new listing, False if it already existed."""
     if listing_exists(cur, listing):
@@ -116,7 +116,7 @@ def process_search(cur, search):
     existing_count = 0
 
     for listing in listings:
-        is_new = save_listing(cur, listing, search["id"])
+        is_new = save_listing(cur, listing, search["id"], search["name"])
         if is_new:
             new_count += 1
             print(f"  NEW: {listing.title} - {listing.price}")
