@@ -8,8 +8,7 @@ Usage (run from the scrapper/ project root):
 import sys
 from pathlib import Path
 
-
-# todo meanwhile, Add the project root (parent of scripts/) to Python's import path
+# Add the project root (parent of scripts/) to Python's import path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -17,8 +16,7 @@ import psycopg2.extras
 
 from src.db.connect import get_connection
 from src.scrapers import BazosScraper
-
-from src.notifications.telegram import send_telegram_message, send_telegram_notification, format_telegram_message
+from src.notifications.telegram import send_telegram_notification, format_telegram_message
 
 
 def fetch_active_searches(cur):
@@ -40,10 +38,9 @@ def build_search_config(search):
     }
 
 
-def scrape_search(search):
+def scrape_search(search, scraper):
     """Run the scraper for a single search row. Returns a list of Listing objects."""
     config = build_search_config(search)
-    scraper = BazosScraper(search["source"])
     return scraper.scrape(config)
 
 
@@ -70,8 +67,8 @@ def insert_listing(cur, listing, search_id):
         """
         INSERT INTO listings
         (id, source, search_id, title, url, price, image_url, description,
-         location, category, date_posted, view_count)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+         location, category, date_posted, view_count, seller_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
             listing.listing_id,
@@ -86,29 +83,49 @@ def insert_listing(cur, listing, search_id):
             listing.category,
             listing.date_posted,
             listing.view_count,
+            listing.seller_id,
         ),
     )
 
 
-def save_listing(cur, listing, search_id, search_name):
+def is_seller_blocked(cur, seller_id):
+    """Check whether this seller_id is on the blocklist."""
+    if not seller_id:
+        return False
+
+    cur.execute(
+        "SELECT 1 FROM blocked_sellers WHERE seller_id = %s",
+        (seller_id,),
+    )
+    return cur.fetchone() is not None
+
+
+def save_listing(cur, listing, search_id, search_name, scraper):
     """Save one listing: insert if new, otherwise just update last_checked.
     Returns True if it was a new listing, False if it already existed."""
     if listing_exists(cur, listing):
         touch_listing(cur, listing)
         return False
     else:
+        listing.seller_id = scraper.get_seller_id(listing.url)  # open detail only if new
         insert_listing(cur, listing, search_id)
-        message = format_telegram_message(listing, search_name)
-        send_telegram_notification(message)
+
+        if is_seller_blocked(cur, listing.seller_id):
+            print(f"  SKIPPED (blocked seller): {listing.title}")
+        else:
+            message = format_telegram_message(listing, search_name)
+            send_telegram_notification(message)
+
         return True
 
 
 def process_search(cur, search):
-    """Scrape one search and save all its listings. Returns (new_count, existing_count)."""
     print(f"\n--- Search '{search['name']}' (id={search['id']}) ---")
 
+    scraper = BazosScraper(search["source"])  # jedna inštancia pre celé hľadanie
+
     try:
-        listings = scrape_search(search)
+        listings = scrape_search(search, scraper)
     except Exception as e:
         print(f"  ERROR scraping: {e}")
         return 0, 0
@@ -119,7 +136,7 @@ def process_search(cur, search):
     existing_count = 0
 
     for listing in listings:
-        is_new = save_listing(cur, listing, search["id"], search["name"])
+        is_new = save_listing(cur, listing, search["id"], search["name"], scraper)
         if is_new:
             new_count += 1
             print(f"  NEW: {listing.title} - {listing.price}")
