@@ -18,7 +18,7 @@ import psycopg2.extras
 from src.db.connect import get_connection
 from src.scrapers import BazosScraper
 
-from src.notifications.telegram import send_telegram_message
+from src.notifications.telegram import send_telegram_message, send_telegram_notification, format_telegram_message
 
 
 def fetch_active_searches(cur):
@@ -98,7 +98,8 @@ def save_listing(cur, listing, search_id, search_name):
         return False
     else:
         insert_listing(cur, listing, search_id)
-        send_telegram_message(f"🚗 Nový inzerát pre hľadanie: {search_name}")
+        message = format_telegram_message(listing, search_name)
+        send_telegram_notification(message)
         return True
 
 
