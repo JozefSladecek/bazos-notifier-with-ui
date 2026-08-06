@@ -93,6 +93,30 @@ class BazosScraper(BaseScraper):
         self.logger.info(f"Total listings found: {len(all_listings)}")
         return all_listings
 
+    def get_seller_id(self, listing_url: str) -> Optional[str]:
+        """Fetch a listing's detail page and extract the seller's idphone identifier.
+
+        Args:
+            listing_url: Full URL to the listing detail page
+
+        Returns:
+            The seller's idphone as a string, or None if not found/fetch failed.
+        """
+        try:
+            response = self.session.get(listing_url, timeout=30)
+            response.raise_for_status()
+            response.encoding = "utf-8"
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error fetching listing detail {listing_url}: {e}")
+            return None
+
+        match = re.search(r"odeslatakci\('rating',\s*'\d+',\s*'(\d+)'", response.text) # function which containt seller_id (phone number id)
+        if match:
+            return match.group(1)
+
+        self.logger.debug(f"No seller id found on {listing_url}")
+        return None
+
     def _build_search_url(self, search_config: Dict) -> Optional[str]:
         """Build search URL from configuration parameters.
 

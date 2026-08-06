@@ -26,10 +26,17 @@ CREATE TABLE IF NOT EXISTS listings (
     category TEXT,
     date_posted TEXT,
     view_count INTEGER,
+    seller_id TEXT,
     first_seen TIMESTAMP NOT NULL DEFAULT NOW(),
     last_checked TIMESTAMP NOT NULL DEFAULT NOW(),
     notified BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id, source)
+);
+
+CREATE TABLE IF NOT EXISTS blocked_sellers (
+    seller_id TEXT PRIMARY KEY,
+    note TEXT,
+    blocked_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_listings_search_id ON listings(search_id);

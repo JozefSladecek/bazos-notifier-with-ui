@@ -24,6 +24,7 @@ class Listing:
         category: Optional[str] = None,
         date_posted: Optional[str] = None,
         view_count: Optional[int] = None,
+        seller_id: Optional[str] = None,
     ):
         self.listing_id = listing_id
         self.source = source
@@ -38,7 +39,7 @@ class Listing:
         self.category = category
         self.date_posted = date_posted
         self.view_count = view_count
-
+        self.seller_id = seller_id
     def __repr__(self):
         return f"<Listing {self.source}:{self.listing_id} - {self.title}>"
 
