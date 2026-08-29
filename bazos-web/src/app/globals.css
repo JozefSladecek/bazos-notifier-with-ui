@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #FAFAF8;
+  --panel: #FFFFFF;
+  --border: #E8E6E0;
+  --text: #16171B;
+  --muted: #6B6D76;
+
+  --accent: #1B1F3B;        /* primary buttons, active states */
+  --accent-fg: #FFFFFF;
+  --accent-soft: #C7C4F0;   /* secondary buttons */
+  --accent-soft-fg: #1B1F3B;
+
+  --price: #B8860B;         /* price highlights */
+  --success-bg: #EDECFA;    /* soft badge background */
+  --danger: #DC2626;        /* destructive actions on hover */
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}

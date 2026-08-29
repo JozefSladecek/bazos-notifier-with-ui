@@ -44,7 +44,6 @@ def send_telegram_message(text: str) -> bool:
         print(f"  WARNING: Failed to send Telegram message: {e}")
         return False
 
-
 def send_telegram_photo(photo_url: str, caption: str) -> bool:
     """Send a photo with a caption via the Telegram bot."""
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -67,7 +66,6 @@ def send_telegram_photo(photo_url: str, caption: str) -> bool:
     except requests.RequestException as e:
         print(f"  WARNING: Failed to send Telegram photo: {e}")
         return send_telegram_message(caption)  # fallback for plain text
-
 
 def send_telegram_notification(message: dict) -> bool:
     """Send a Telegram notification, using a photo if one is available, otherwise plain text."""
