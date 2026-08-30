@@ -4,7 +4,7 @@ Read active searches from the DB, scrape each one, and save new listings.
 Usage (run from the scrapper/ project root):
     uv run python scripts/db_driven_scrape.py
 """
-
+import os
 import sys
 from pathlib import Path
 
@@ -102,7 +102,7 @@ def is_seller_blocked(cur, seller_id):
     return cur.fetchone() is not None
 
 
-def save_listing(cur, listing, search_id, search_name, scraper):
+def save_listing(cur, listing, search_id, search_name, scraper, chat_id):
     """Save one listing: insert if new, otherwise just update last_checked.
     Returns True if it was a new listing, False if it already existed."""
     if listing_exists(cur, listing):
@@ -116,7 +116,7 @@ def save_listing(cur, listing, search_id, search_name, scraper):
             print(f"  SKIPPED (blocked seller): {listing.title}")
         else:
             message = format_telegram_message(listing, search_name)
-            send_telegram_notification(message)
+            send_telegram_notification(message, chat_id)
 
         return True
 
@@ -158,8 +158,10 @@ def process_search(cur, search):
     new_count = 0
     existing_count = 0
 
+    chat_id = search["telegram_chat_id"] or os.environ.get("TELEGRAM_CHAT_ID")
+
     for listing in listings:
-        is_new = save_listing(cur, listing, search["id"], search["name"], scraper)
+        is_new = save_listing(cur, listing, search["id"], search["name"], scraper, chat_id)
         if is_new:
             new_count += 1
             print(f"  NEW: {listing.title} - {listing.price}")

@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS searches (
     radius INTEGER,
     max_pages INTEGER NOT NULL DEFAULT 3,
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    telegram_chat_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS listings (

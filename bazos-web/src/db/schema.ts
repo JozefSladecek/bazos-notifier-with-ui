@@ -13,6 +13,7 @@ export const searches = pgTable("searches", {
   maxPages: integer("max_pages").notNull().default(3),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  telegramChatId: text("telegram_chat_id"),
 });
 
 export const listings = pgTable("listings", {

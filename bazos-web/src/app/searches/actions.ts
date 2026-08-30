@@ -11,6 +11,8 @@ export async function addSearch(formData: FormData) {
   const priceMin = formData.get("priceMin") as string;
   const priceMax = formData.get("priceMax") as string
   const maxPages = formData.get("maxPages") as string;
+  const telegramChatId = formData.get("telegramChatId") as string;
+
 
   await db.insert(searches).values({
     name,
@@ -19,6 +21,7 @@ export async function addSearch(formData: FormData) {
     priceMin: priceMin ? parseInt(priceMin) : null,
     priceMax: priceMax ? parseInt(priceMax) : null,
     maxPages: maxPages ? parseInt(maxPages) : 3,
+    telegramChatId: telegramChatId || null,
     active: true,
   });
 
@@ -46,6 +49,7 @@ export async function updateSearch(searchId: number, formData: FormData) {
   const priceMin = formData.get("priceMin") as string;
   const priceMax = formData.get("priceMax") as string;
   const maxPages = formData.get("maxPages") as string;
+  const telegramChatId = formData.get("telegramChatId") as string;
 
   await db
     .update(searches)
@@ -55,6 +59,7 @@ export async function updateSearch(searchId: number, formData: FormData) {
       priceMin: priceMin ? parseInt(priceMin) : null,
       priceMax: priceMax ? parseInt(priceMax) : null,
       maxPages: maxPages ? parseInt(maxPages) : 3,
+      telegramChatId: telegramChatId || null,
     })
     .where(eq(searches.id, searchId));
 
