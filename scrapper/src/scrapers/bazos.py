@@ -174,9 +174,17 @@ class BazosScraper(BaseScraper):
 
         if "/?" in base_url:
             parts = base_url.split("/?")
-            return f"{parts[0]}/{offset}/?{parts[1]}"
+            query_params = parts[1].split("&")
+
+            # Bazos's own pagination links drop these params - keeping them
+            # causes the server to always return page 1's results
+            params_to_drop = {"rubriky", "Submit", "crp", "kitx"}
+            filtered = [p for p in query_params if p.split("=")[0] not in params_to_drop]
+
+            return f"{parts[0]}/{offset}/?{'&'.join(filtered)}"
         else:
-            return base_url
+            # plain URL without query params (e.g. .../hyundai/) - append offset segment
+            return f"{base_url.rstrip('/')}/{offset}/"
 
     def _parse_listings(self, soup: BeautifulSoup) -> List[Listing]:
         """Parse listing items from search results page.

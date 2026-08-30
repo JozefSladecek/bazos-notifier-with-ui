@@ -9,7 +9,8 @@ export async function addSearch(formData: FormData) {
   const name = formData.get("name") as string;
   const url = formData.get("url") as string;
   const priceMin = formData.get("priceMin") as string;
-  const priceMax = formData.get("priceMax") as string;
+  const priceMax = formData.get("priceMax") as string
+  const maxPages = formData.get("maxPages") as string;
 
   await db.insert(searches).values({
     name,
@@ -17,7 +18,7 @@ export async function addSearch(formData: FormData) {
     url,
     priceMin: priceMin ? parseInt(priceMin) : null,
     priceMax: priceMax ? parseInt(priceMax) : null,
-    maxPages: 1,
+    maxPages: maxPages ? parseInt(maxPages) : 3,
     active: true,
   });
 
@@ -44,6 +45,7 @@ export async function updateSearch(searchId: number, formData: FormData) {
   const url = formData.get("url") as string;
   const priceMin = formData.get("priceMin") as string;
   const priceMax = formData.get("priceMax") as string;
+  const maxPages = formData.get("maxPages") as string;
 
   await db
     .update(searches)
@@ -52,6 +54,7 @@ export async function updateSearch(searchId: number, formData: FormData) {
       url,
       priceMin: priceMin ? parseInt(priceMin) : null,
       priceMax: priceMax ? parseInt(priceMax) : null,
+      maxPages: maxPages ? parseInt(maxPages) : 3,
     })
     .where(eq(searches.id, searchId));
 

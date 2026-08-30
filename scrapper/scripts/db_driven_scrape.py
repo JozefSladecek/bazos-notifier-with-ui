@@ -34,7 +34,9 @@ def build_search_config(search):
         "price_min": search["price_min"],
         "price_max": search["price_max"],
         "location": search["location"],
-        "max_pages": search["max_pages"] or 1,
+        # +1 page as a buffer, so we can reliably detect listings that
+        # disappeared from Bazos (see save_listing/remove_stale_listings)
+        "max_pages": (search["max_pages"] or 1) + 1,
     }
 
 
@@ -118,6 +120,27 @@ def save_listing(cur, listing, search_id, search_name, scraper):
 
         return True
 
+def find_stale_listings(cur, search_id, scraped_listings):
+    """Find listings in the DB for this search that were NOT found in the current scrape.
+    Returns a list of (id, source) tuples."""
+    scraped_ids = {(listing.listing_id, listing.source) for listing in scraped_listings}  # current search
+
+    cur.execute(
+        "SELECT id, source FROM listings WHERE search_id = %s",
+        (search_id,),
+    )
+    db_ids = {(row["id"], row["source"]) for row in cur.fetchall()} # search in db
+
+    stale = db_ids - scraped_ids
+    return list(stale)
+
+def delete_stale_listings(cur, stale):
+    """Delete listings that are no longer found on Bazos."""
+    for listing_id, source in stale:
+        cur.execute(
+            "DELETE FROM listings WHERE id = %s AND source = %s",
+            (listing_id, source),
+        )
 
 def process_search(cur, search):
     print(f"\n--- Search '{search['name']}' (id={search['id']}) ---")
@@ -142,6 +165,11 @@ def process_search(cur, search):
             print(f"  NEW: {listing.title} - {listing.price}")
         else:
             existing_count += 1
+
+    stale = find_stale_listings(cur, search["id"], listings)
+    if stale:
+        # print(f"  Found {len(stale)} stale listing(s):")
+        delete_stale_listings(cur, stale)
 
     return new_count, existing_count
 
