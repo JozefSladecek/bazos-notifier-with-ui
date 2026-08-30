@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { searches, listings, blockedSellers } from "@/db/schema";
-import { eq, and, notInArray, or, isNull } from "drizzle-orm";
+import {eq, and, notInArray, or, isNull, desc} from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -37,7 +37,8 @@ export default async function SearchDetailPage({
                 )
                 : eq(listings.searchId, searchId)
         )
-        .orderBy(listings.firstSeen);
+        .orderBy(desc(listings.firstSeen))
+        .limit((search.maxPages ?? 3) * 20);
 
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
