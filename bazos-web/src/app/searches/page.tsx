@@ -1,11 +1,9 @@
-import { db } from "@/db";
-import { searches } from "@/db/schema";
-import { addSearch } from "./actions";
 import { AddSearchForm } from "./components/AddSearchForm";
 import { EditableSearchCard } from "./components/EditableSearchCard";
+import {getMySearches} from "@/app/searches/queries";
 
 export default async function SearchesPage() {
-    const allSearches = await db.select().from(searches);
+    const allSearches = await getMySearches();
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
