@@ -3,6 +3,7 @@ import { searches, listings, blockedSellers } from "@/db/schema";
 import {eq, and, notInArray, or, isNull, desc} from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import {getMySearch} from "@/app/searches/queries";
 
 export default async function SearchDetailPage({
                                                    params,
@@ -11,12 +12,10 @@ export default async function SearchDetailPage({
 }) {
     const { id } = await params;
     const searchId = parseInt(id);
+    if (Number.isNaN(searchId)) notFound();
 
-    const [search] = await db
-        .select()
-        .from(searches)
-        .where(eq(searches.id, searchId));
-
+    // only returns the search if it belongs to the logged-in user
+    const search = await getMySearch(searchId);
     if (!search) {
         notFound();
     }

@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { searches } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getCurrentUserId } from "@/lib/session";
 
 export async function addSearch(formData: FormData) {
@@ -30,21 +30,29 @@ export async function addSearch(formData: FormData) {
 }
 
 export async function toggleSearchActive(searchId: number, currentlyActive: boolean) {
+  const userId = await getCurrentUserId();
+
   await db
     .update(searches)
     .set({ active: !currentlyActive })
-    .where(eq(searches.id, searchId));
+    .where(and(eq(searches.id, searchId), eq(searches.userId, userId)));
 
   revalidatePath("/searches");
 }
 
 export async function deleteSearch(searchId: number) {
-  await db.delete(searches).where(eq(searches.id, searchId));
+  const userId = await getCurrentUserId();
+
+  await db
+    .delete(searches)
+    .where(and(eq(searches.id, searchId), eq(searches.userId, userId)));
 
   revalidatePath("/searches");
 }
 
 export async function updateSearch(searchId: number, formData: FormData) {
+  const userId = await getCurrentUserId();
+
   const name = formData.get("name") as string;
   const url = formData.get("url") as string;
   const priceMin = formData.get("priceMin") as string;
@@ -60,7 +68,7 @@ export async function updateSearch(searchId: number, formData: FormData) {
       priceMax: priceMax ? parseInt(priceMax) : null,
       maxPages: maxPages ? parseInt(maxPages) : 3,
     })
-    .where(eq(searches.id, searchId));
+    .where(and(eq(searches.id, searchId), eq(searches.userId, userId)));
 
   revalidatePath("/searches");
 }
