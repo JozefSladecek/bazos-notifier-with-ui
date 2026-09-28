@@ -20,8 +20,15 @@ from src.notifications.telegram import send_telegram_notification, format_telegr
 
 
 def fetch_active_searches(cur):
-    """Return all active search rows from the DB."""
-    cur.execute("SELECT * FROM searches WHERE active = true")
+    """Return all active search rows, with the owner's chat id."""
+    cur.execute(
+        """
+        SELECT s.*, u.telegram_chat_id AS user_chat_id
+        FROM searches s
+        LEFT JOIN users u ON s.user_id = u.id
+        WHERE s.active = true
+        """
+    )
     return cur.fetchall()
 
 
@@ -158,7 +165,7 @@ def process_search(cur, search):
     new_count = 0
     existing_count = 0
 
-    chat_id = search["telegram_chat_id"] or os.environ.get("TELEGRAM_CHAT_ID")
+    chat_id = search["user_chat_id"] or os.environ.get("TELEGRAM_CHAT_ID")
 
     for listing in listings:
         is_new = save_listing(cur, listing, search["id"], search["name"], scraper, chat_id)

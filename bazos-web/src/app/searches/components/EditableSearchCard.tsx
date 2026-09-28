@@ -14,7 +14,6 @@ type Search = {
     priceMax: number | null;
     maxPages: number | null;
     active: boolean;
-    telegramChatId: string | null;
 };
 
 export function EditableSearchCard({search}: { search: Search }) {
@@ -97,19 +96,6 @@ export function EditableSearchCard({search}: { search: Search }) {
                             className="w-full rounded-md bg-[var(--bg)] border border-[var(--border)] px-3 py-2 text-sm font-mono outline-none focus:border-[var(--accent)]"
                         />
                         <p className="text-xs text-[var(--muted)]">1 strana ≈ 20 inzerátov</p>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-xs uppercase tracking-wide text-[var(--muted)]">
-                            Telegram Chat ID (voliteľné)
-                        </label>
-                        <input
-                            name="telegramChatId"
-                            type="text"
-                            defaultValue={search.telegramChatId ?? ""}
-                            placeholder="Nechaj prázdne pre default"
-                            className="w-full rounded-md bg-[var(--bg)] border border-[var(--border)] px-3 py-2 text-sm font-mono outline-none focus:border-[var(--accent)]"
-                        />
                     </div>
 
                     <div className="space-y-1">

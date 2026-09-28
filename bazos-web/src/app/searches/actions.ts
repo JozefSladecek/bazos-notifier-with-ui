@@ -4,24 +4,25 @@ import { db } from "@/db";
 import { searches } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
+import { getCurrentUserId } from "@/lib/session";
 
 export async function addSearch(formData: FormData) {
+  const userId = await getCurrentUserId();
+
   const name = formData.get("name") as string;
   const url = formData.get("url") as string;
   const priceMin = formData.get("priceMin") as string;
-  const priceMax = formData.get("priceMax") as string
+  const priceMax = formData.get("priceMax") as string;
   const maxPages = formData.get("maxPages") as string;
-  const telegramChatId = formData.get("telegramChatId") as string;
-
 
   await db.insert(searches).values({
+    userId,
     name,
     source: "bazos_sk",
     url,
     priceMin: priceMin ? parseInt(priceMin) : null,
     priceMax: priceMax ? parseInt(priceMax) : null,
     maxPages: maxPages ? parseInt(maxPages) : 3,
-    telegramChatId: telegramChatId || null,
     active: true,
   });
 
@@ -49,7 +50,6 @@ export async function updateSearch(searchId: number, formData: FormData) {
   const priceMin = formData.get("priceMin") as string;
   const priceMax = formData.get("priceMax") as string;
   const maxPages = formData.get("maxPages") as string;
-  const telegramChatId = formData.get("telegramChatId") as string;
 
   await db
     .update(searches)
@@ -59,7 +59,6 @@ export async function updateSearch(searchId: number, formData: FormData) {
       priceMin: priceMin ? parseInt(priceMin) : null,
       priceMax: priceMax ? parseInt(priceMax) : null,
       maxPages: maxPages ? parseInt(maxPages) : 3,
-      telegramChatId: telegramChatId || null,
     })
     .where(eq(searches.id, searchId));
 
