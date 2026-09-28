@@ -1,7 +1,16 @@
 import { pgTable, serial, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  telegramChatId: text("telegram_chat_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const searches = pgTable("searches", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   source: text("source").notNull(),
   url: text("url"),
