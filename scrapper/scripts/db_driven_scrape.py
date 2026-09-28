@@ -53,20 +53,21 @@ def scrape_search(search, scraper):
     return scraper.scrape(config)
 
 
-def listing_exists(cur, listing):
-    """Check whether this listing is already in the DB."""
+def listing_exists(cur, listing, search_id):
+    """Check whether this listing is already stored for this search."""
     cur.execute(
-        "SELECT 1 FROM listings WHERE id = %s AND source = %s",
-        (listing.listing_id, listing.source),
+        "SELECT 1 FROM listings WHERE id = %s AND source = %s AND search_id = %s",
+        (listing.listing_id, listing.source, search_id),
     )
     return cur.fetchone() is not None
 
 
-def touch_listing(cur, listing):
-    """Update last_checked for a listing we've already seen."""
+def touch_listing(cur, listing, search_id):
+    """Update last_checked for a listing we've already seen in this search."""
     cur.execute(
-        "UPDATE listings SET last_checked = NOW() WHERE id = %s AND source = %s",
-        (listing.listing_id, listing.source),
+        "UPDATE listings SET last_checked = NOW() "
+        "WHERE id = %s AND source = %s AND search_id = %s",
+        (listing.listing_id, listing.source, search_id),
     )
 
 
@@ -112,8 +113,8 @@ def is_seller_blocked(cur, seller_id):
 def save_listing(cur, listing, search_id, search_name, scraper, chat_id):
     """Save one listing: insert if new, otherwise just update last_checked.
     Returns True if it was a new listing, False if it already existed."""
-    if listing_exists(cur, listing):
-        touch_listing(cur, listing)
+    if listing_exists(cur, listing, search_id):
+        touch_listing(cur, listing, search_id)
         return False
     else:
         listing.seller_id = scraper.get_seller_id(listing.url)  # open detail only if new
@@ -141,12 +142,12 @@ def find_stale_listings(cur, search_id, scraped_listings):
     stale = db_ids - scraped_ids
     return list(stale)
 
-def delete_stale_listings(cur, stale):
-    """Delete listings that are no longer found on Bazos."""
+def delete_stale_listings(cur, search_id, stale):
+    """Delete listings of this search that are no longer found on Bazos."""
     for listing_id, source in stale:
         cur.execute(
-            "DELETE FROM listings WHERE id = %s AND source = %s",
-            (listing_id, source),
+            "DELETE FROM listings WHERE id = %s AND source = %s AND search_id = %s",
+            (listing_id, source, search_id),
         )
 
 def process_search(cur, search):
@@ -178,7 +179,7 @@ def process_search(cur, search):
     stale = find_stale_listings(cur, search["id"], listings)
     if stale:
         # print(f"  Found {len(stale)} stale listing(s):")
-        delete_stale_listings(cur, stale)
+        delete_stale_listings(cur, search["id"], stale)
 
     return new_count, existing_count
 

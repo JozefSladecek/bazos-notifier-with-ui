@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS searches (
 CREATE TABLE IF NOT EXISTS listings (
     id TEXT NOT NULL,
     source TEXT NOT NULL,
-    search_id INTEGER REFERENCES searches(id) ON DELETE CASCADE,
+    search_id INTEGER NOT NULL REFERENCES searches(id) ON DELETE CASCADE,
     title TEXT,
     url TEXT,
     price TEXT,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS listings (
     first_seen TIMESTAMP NOT NULL DEFAULT NOW(),
     last_checked TIMESTAMP NOT NULL DEFAULT NOW(),
     notified BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (id, source)
+    PRIMARY KEY (id, source, search_id)
 );
 
 CREATE TABLE IF NOT EXISTS blocked_sellers (
